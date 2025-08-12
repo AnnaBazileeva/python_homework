@@ -31,3 +31,50 @@ print("CSV file contents:")
 with open('employees.csv', 'r') as f:
     print(f.read())
 
+#task2
+
+task2_employees = pd.read_csv('employees.csv')
+print("Employees loaded from CSV:")
+print(task2_employees)
+print()
+
+import json
+
+additional_data = [
+    {"Name": "Eve", "Age": 28, "City": "Miami", "Salary": 60000},
+    {"Name": "Frank", "Age": 40, "City": "Seattle", "Salary": 95000}
+]
+
+with open('additional_employees.json', 'w') as f:
+    json.dump(additional_data, f)
+
+json_employees = pd.read_json('additional_employees.json')
+print("Employees loaded from JSON:")
+print(json_employees)
+print()
+
+more_employees = pd.concat([task2_employees, json_employees], ignore_index=True)
+print("Combined employees:")
+print(more_employees)
+print()
+
+
+#task3
+
+first_three = more_employees.head(3)
+print("First three employees:")
+print(first_three)
+print()
+
+last_two = more_employees.tail(2)
+print("Last two employees:")
+print(last_two)
+print()
+
+employee_shape = more_employees.shape
+print("Shape of DataFrame:")
+print(employee_shape)
+print()
+
+print("DataFrame info:")
+more_employees.info()
