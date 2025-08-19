@@ -1,5 +1,7 @@
 #task1
 import json
+import os.path
+
 import pandas as pd
 import numpy as np
 
@@ -70,13 +72,15 @@ print("DataFrame info:")
 more_employees.info()
 
 #task4
-
-dirty_data = pd.read_csv('/Users/anna/IdeaProjects/python_homework/assignment3/dirty_data.csv')
+base_dir = os.path.dirname(__file__)
+csv_path = os.path.join(base_dir,"dirty_data.csv")
+dirty_data = pd.read_csv(csv_path)
+print("=== Dirty Data ===")
 print(dirty_data)
 
 clean_data = dirty_data.copy()
-print(clean_data)
-
+for col in ['Name', 'Department']:
+    clean_data[col] = clean_data[col].astype(str).str.strip().str.upper()
 
 clean_data = clean_data.drop_duplicates()
 print("After removing duplicates:")
@@ -97,6 +101,8 @@ print("After filling missing values:")
 print(clean_data)
 
 clean_data['Hire Date'] = pd.to_datetime(clean_data['Hire Date'], errors='coerce')
+median_date = clean_data['Hire Date'].median()
+clean_data['Hire Date'] = clean_data['Hire Date'].fillna(median_date)
 print("\n=== Hire Date to Datetime ===")
 print(clean_data)
 
