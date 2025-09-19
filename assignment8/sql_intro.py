@@ -3,72 +3,82 @@ import os
 
 db_path = "../db/magazines.db"
 
-try:
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+os.makedirs("../db", exist_ok=True)
 
-    conn = sqlite3.connect(db_path)
-    print(f"Connected to database at {db_path}")
-    conn.execute("PRAGMA foreign_keys = 1")
-    cur = conn.cursor()
+def create_connection():
+    try:
+        conn = sqlite3.connect("../db/magazines.db")
+        print("Database created and connected successfully.")
+        return conn
+    except sqlite3.Error as e:
+        print(f"Error connecting to database: {e}")
+    return None
 
-    cur.execute('''
-         CREATE TABLE IF NOT EXISTS publishers (
-             id INTEGER PRIMARY KEY AUTOINCREMENT,
-             name TEXT NOT NULL UNIQUE,
-             address TEXT,
-             phone TEXT,
-             email TEXT
-)
-''')
+def close_connection(conn):
+    if conn:
+        conn.close()
+        print("Connection closed.")
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS magazines (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            publisher_id INTEGER NOT NULL,
-            category TEXT,
-            price DECIMAL(10,2) NOT NULL,
-            description TEXT,
-            FOREIGN KEY (publisher_id) REFERENCES publishers(id),
-            UNIQUE(name, publisher_id)
+
+def create_tables(conn):
+    try:
+        cur = conn.cursor()
+
+        cur.execute('''
+             CREATE TABLE IF NOT EXISTS publishers (
+                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 name TEXT NOT NULL UNIQUE,
+                 address TEXT,
+                 phone TEXT,
+                 email TEXT
     )
     ''')
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS subscribers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            first_name TEXT NOT NULL,
-            last_name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            phone TEXT,
-            address TEXT NOT NULL,
-            city TEXT NOT NULL,
-            state TEXT NOT NULL
-    )
-    ''')
-
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS subscriptions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            subscriber_id INTEGER NOT NULL,
-            magazine_id INTEGER NOT NULL,
-            start_date DATE NOT NULL,
-            end_date DATE NOT NULL,
-            payment_method TEXT,
-            FOREIGN KEY (subscriber_id) REFERENCES subscribers(id),
-            FOREIGN KEY (magazine_id) REFERENCES magazines(id),
-            UNIQUE(subscriber_id, magazine_id, start_date)
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS magazines (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                publisher_id INTEGER NOT NULL,
+                category TEXT,
+                price DECIMAL(10,2) NOT NULL,
+                description TEXT,
+                FOREIGN KEY (publisher_id) REFERENCES publishers(id),
+                UNIQUE(name, publisher_id)
         )
-    ''')
+        ''')
 
-    conn.commit()
-    print("Database tables created successfully!")
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS subscribers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE,
+                phone TEXT,
+                address TEXT NOT NULL,
+                city TEXT NOT NULL,
+                state TEXT NOT NULL
+        )
+        ''')
 
-except sqlite3.Error as e:
-    print(f"Error creating tables: {e}")
-finally:
-    if 'conn' in locals():
-            conn.close()
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                subscriber_id INTEGER NOT NULL,
+                magazine_id INTEGER NOT NULL,
+                start_date DATE NOT NULL,
+                end_date DATE NOT NULL,
+                payment_method TEXT,
+                FOREIGN KEY (subscriber_id) REFERENCES subscribers(id),
+                FOREIGN KEY (magazine_id) REFERENCES magazines(id),
+                UNIQUE(subscriber_id, magazine_id, start_date)
+            )
+        ''')
+
+        conn.commit()
+        print("Database tables created successfully!")
+
+    except sqlite3.Error as e:
+        print(f"Error creating tables: {e}")
 
 
 def add_publisher(conn, name, address, phone, email):
@@ -107,6 +117,7 @@ def add_magazine(conn, name, publisher_id, category, price, description):
         )
         conn.commit()
         print(f"Magazine '{name}' added.")
+        return cur.lastrowid
     except sqlite3.Error as e:
         print(f"Error adding magazine: {e}")
         return None
@@ -131,6 +142,7 @@ def add_subscriber(conn, first_name, last_name, email, phone, address, city, sta
         )
         conn.commit()
         print(f"Subscriber {first_name} {last_name} added.")
+        return cur.lastrowid
     except sqlite3.Error as e:
         print(f"Error adding subscriber: {e}")
         return None
@@ -155,17 +167,49 @@ def add_subscription(conn, subscriber_id, magazine_id, start_date, end_date, pay
         )
         conn.commit()
         print(f"Subscription added for subscriber {subscriber_id}.")
+        return cur.lastrowid
     except sqlite3.Error as e:
         print(f"Error adding subscription: {e}")
         return None
-if __name__ == "__main__":
 
-    try:
+def show_all_subscribers(conn):
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM subscribers")
+        rows = cursor.fetchall()
+        print("\nAll subscribers:")
+        for row in rows:
+            print(row)
+
+def show_all_magazines(conn):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM magazines ORDER BY name")
+    rows = cursor.fetchall()
+    print("\nAll magazines:")
+    for row in rows:
+        print(row)
+
+def show_magazines_by_publisher(conn, publisher_name):
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT m.name
+        FROM magazines m
+        JOIN publishers p ON m.publisher_id = p.id
+        WHERE p.name = ?
+    """, (publisher_name,))
+    rows = cursor.fetchall()
+    print(f"\nMagazines by {publisher_name}:")
+    for row in rows:
+        print(row[0])
+
+if __name__ == "__main__":
+        try:
             os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
             conn = sqlite3.connect(db_path)
             conn.execute("PRAGMA foreign_keys = 1")
             print(f"Connected to database at {db_path}")
+
+            create_tables(conn)
 
             publisher1_id = add_publisher(conn, "Times", "225 Liberty Street, New York, NY", "202-555-2255", "info@time.com")
             publisher2_id = add_publisher(conn, "Fox", "1 World Trade Center, Las Vegas, NV", "202-303-2233", "indo@fox.com")
@@ -195,11 +239,17 @@ if __name__ == "__main__":
             print("\nDatabase populated successfully!")
             print("Added publishers, magazines, subscribers, and subscriptions.")
 
-    except Exception as e:
-        print(f"An error occurred: {e}")
+            show_all_subscribers(conn)
+            show_all_magazines(conn)
+            show_magazines_by_publisher(conn, "Fox")
 
-    finally:
-        if 'conn' in locals() and conn:
-            conn.close()
-            print("Connection closed")
+            close_connection(conn)
 
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+        finally:
+            if 'conn' in locals() and conn:
+                conn.close()
+                print("Connection closed")
