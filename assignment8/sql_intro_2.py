@@ -25,6 +25,17 @@ CREATE TABLE IF NOT EXISTS line_items (
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 )
 """)
+
+conn.execute("INSERT INTO products (product_name, price) VALUES ('Apple', 1.2)")
+conn.execute("INSERT INTO products (product_name, price) VALUES ('Banana', 0.8)")
+conn.execute("INSERT INTO products (product_name, price) VALUES ('Orange', 1.5)")
+
+conn.execute("INSERT INTO line_items (product_id, quantity) VALUES (1, 10)")
+conn.execute("INSERT INTO line_items (product_id, quantity) VALUES (2, 5)")
+conn.execute("INSERT INTO line_items (product_id, quantity) VALUES (3, 8)")
+
+conn.commit()
+
 conn.commit()
 
 def main():
@@ -70,8 +81,11 @@ def main():
     summary = summary.sort_values(by='product_name')
     print("\nGrouped Summary:\n", summary.head())
 
-    summary.to_csv("order_summary.csv", index=False)
-    print("\nSummary saved to order_summary.csv")
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "csv")
+    os.makedirs(output_dir, exist_ok=True)
+
+    summary.to_csv(os.path.join(output_dir, "order_summary.csv"), index=False)
+print("\nSummary saved to csv/order_summary.csv")
 
 if __name__ == "__main__":
     main()
