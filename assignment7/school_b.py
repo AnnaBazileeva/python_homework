@@ -1,6 +1,7 @@
 import sqlite3
+import os
 
-# Connect to the database
+os.makedirs("../db", exist_ok=True)
 
 def add_student(cursor, name, age, major):
     try:
@@ -15,10 +16,25 @@ def add_course(cursor, name, instructor):
         print(f"{name} is already in the database.")
 
 with sqlite3.connect("../db/school.db") as conn:
-    conn.execute("PRAGMA foreign_keys = 1") # This turns on the foreign key constraint
+    conn.execute("PRAGMA foreign_keys = 1")
     cursor = conn.cursor()
 
-    # Insert sample data into tables
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            age INTEGER,
+            major TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Courses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            course_name TEXT NOT NULL,
+            instructor_name TEXT
+        )
+    """)
+
 
     add_student(cursor, 'Alice', 20, 'Computer Science')
     add_student(cursor, 'Bob', 22, 'History')
@@ -28,17 +44,14 @@ with sqlite3.connect("../db/school.db") as conn:
     add_course(cursor, 'Chemistry 101', 'Dr. Lee')
 
     conn.commit()
-    # If you don't commit the transaction, it is rolled back at the end of the with statement, and the data is discarded.
     print("Sample data inserted successfully.")
 
-    import sqlite3
-
-
-with sqlite3.connect("../db/school.db") as conn:
-    conn.execute("PRAGMA foreign_keys = 1") # This turns on the foreign key constraint
-    cursor = conn.cursor()
 
     cursor.execute("""UPDATE Students SET name="Charles", age=20 WHERE name="Charlie";""")
+    conn.commit()
+
+
+    cursor.execute("SELECT * FROM Students WHERE name='Charles'")
     result = cursor.fetchall()
     for row in result:
         print(row)
