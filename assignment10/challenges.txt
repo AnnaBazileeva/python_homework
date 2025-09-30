@@ -1,0 +1,13 @@
+One of the main challenges I had in this assignment was using XPath selectors.
+They felt harder and less clear to me than CSS selectors.
+I struggled to build the right paths to reach certain elements,
+especially when the elements were nested, didn’t have clear class names,
+or were hidden by styles (display:none or visibility:hidden).
+
+To solve this, I used the browser’s developer tools to check the page structure
+and tried different XPath expressions.
+I also tested my XPath in online tools and added print statements in my code
+to make sure I was getting the right elements.
+For hidden elements, I sometimes had to perform actions like clicking a button or scrolling
+to make them visible before selecting them.
+With practice, I began to understand how to use XPath better.
