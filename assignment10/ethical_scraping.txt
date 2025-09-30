@@ -1,0 +1,11 @@
+Restricted Sections:
+- /wiki/Special:
+- /w/
+
+Rules for Specific Agents:
+- User-agent: GPTBot is disallowed entirely
+- Some sections are disallowed for all (*)
+
+Purpose of robots.txt:
+Websites use robots.txt to control which parts of their site are accessible to automated tools.
+It helps protect server resources and preserve data privacy, promoting ethical and respectful scraping behavior.
